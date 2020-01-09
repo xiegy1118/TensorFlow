@@ -15,8 +15,8 @@ limitations under the License.
 
 #include <vector>
 
-#include "tensorflow/c/tf_status.h"
 #include "tensorflow/c/experimental/filesystem/filesystem_interface.h"
+#include "tensorflow/c/tf_status.h"
 
 // Implementation of a filesystem for POSIX environments.
 // This filesystem will support `file://` and empty (local) URI schemes.
@@ -55,12 +55,13 @@ namespace tf_windows_filesystem {
 
 extern "C" {
 
-TF_CAPI_EXPORT void TF_InitPlugin(TF_Status* status) {
+TF_CAPI_EXPORT void TF_InitPlugin(TF_FilesystemPluginInfo* info) {
+  TF_SetFilesystemVersionMetadata(info);
 
-  for (const char* scheme : {"", "file"})
-    TF_REGISTER_FILESYSTEM_PLUGIN(scheme, nullptr,
-                                  nullptr, nullptr,
-                                  nullptr, status);
+  info->num_schemes = 2;
+  info->schemes = static_cast<char**>(calloc(info->num_schemes, sizeof(info->schemes[0])));
+  info->schemes[0] = strdup("");
+  info->schemes[1] = strdup("file");
 }
 
 }  // extern "C"
