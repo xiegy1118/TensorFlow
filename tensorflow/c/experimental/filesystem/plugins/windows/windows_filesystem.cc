@@ -50,4 +50,8 @@ namespace tf_windows_filesystem {
 
 }  // namespace tf_windows_filesystem
 
-void TF_InitPlugin(TF_Status* status) {}
+extern "C" {
+
+TF_CAPI_EXPORT void TF_InitPlugin(TF_Status* status) {}
+
+}  // extern "C"

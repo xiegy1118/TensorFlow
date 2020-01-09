@@ -396,7 +396,9 @@ static int GetChildren(const TF_Filesystem* filesystem, const char* path,
 
 }  // namespace tf_posix_filesystem
 
-void TF_InitPlugin(TF_Status* status) {
+extern "C" {
+
+TF_CAPI_EXPORT void TF_InitPlugin(TF_Status* status) {
   TF_RandomAccessFileOps random_access_file_ops = {
       tf_random_access_file::Cleanup,
       tf_random_access_file::Read,
@@ -441,3 +443,5 @@ void TF_InitPlugin(TF_Status* status) {
                                   &random_access_file_ops, &writable_file_ops,
                                   &read_only_memory_region_ops, status);
 }
+
+}  // extern "C"

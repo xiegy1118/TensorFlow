@@ -1,5 +1,5 @@
 # Experimental windows filesystem plugin.
-load("//tensorflow:tensorflow.bzl", "tf_cc_shared_object")
+load("//tensorflow:tensorflow.bzl", "get_win_copts", "tf_cc_shared_object")
 
 package(
     licenses = ["notice"],  # Apache 2.0
@@ -18,6 +18,7 @@ tf_cc_shared_object(
 cc_library(
     name = "windows_filesystem_impl",
     srcs = ["windows_filesystem.cc"],
+    copts = get_win_copts(),
     deps = [
         "//tensorflow/c:tf_status",
         "//tensorflow/c/experimental/filesystem:filesystem_interface",
