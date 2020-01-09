@@ -1,4 +1,4 @@
-/* Copyright 2019 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2020 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -13,7 +13,10 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
+#include <vector>
+
 #include "tensorflow/c/tf_status.h"
+#include "tensorflow/c/experimental/filesystem/filesystem_interface.h"
 
 // Implementation of a filesystem for POSIX environments.
 // This filesystem will support `file://` and empty (local) URI schemes.
@@ -52,6 +55,12 @@ namespace tf_windows_filesystem {
 
 extern "C" {
 
-TF_CAPI_EXPORT void TF_InitPlugin(TF_Status* status) {}
+TF_CAPI_EXPORT void TF_InitPlugin(TF_Status* status) {
+
+  for (const char* scheme : {"", "file"})
+    TF_REGISTER_FILESYSTEM_PLUGIN(scheme, nullptr,
+                                  nullptr, nullptr,
+                                  nullptr, status);
+}
 
 }  // extern "C"
