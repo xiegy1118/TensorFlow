@@ -50,5 +50,4 @@ namespace tf_windows_filesystem {
 
 }  // namespace tf_windows_filesystem
 
-void TF_InitPlugin(TF_Status* status) {
-}
+void TF_InitPlugin(TF_Status* status) {}
