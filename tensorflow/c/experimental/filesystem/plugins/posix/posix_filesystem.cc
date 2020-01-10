@@ -394,9 +394,7 @@ static int GetChildren(const TF_Filesystem* filesystem, const char* path,
 
 }  // namespace tf_posix_filesystem
 
-extern "C" {
-
-TF_CAPI_EXPORT void TF_InitPlugin(TF_FilesystemPluginInfo* info) {
+void TF_InitPlugin(TF_FilesystemPluginInfo* info) {
   TF_SetFilesystemVersionMetadata(info);
 
   info->random_access_file_ops = static_cast<TF_RandomAccessFileOps*>(calloc(1, TF_RANDOM_ACCESS_FILE_OPS_SIZE));
@@ -437,5 +435,3 @@ TF_CAPI_EXPORT void TF_InitPlugin(TF_FilesystemPluginInfo* info) {
   info->schemes[0] = strdup("");
   info->schemes[1] = strdup("file");
 }
-
-}  // extern "C"

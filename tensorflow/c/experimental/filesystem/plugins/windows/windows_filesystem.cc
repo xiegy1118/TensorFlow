@@ -12,8 +12,8 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
-
-#include <vector>
+#include <stdlib.h>
+#include <string.h>
 
 #include "tensorflow/c/experimental/filesystem/filesystem_interface.h"
 #include "tensorflow/c/tf_status.h"
@@ -53,9 +53,7 @@ namespace tf_windows_filesystem {
 
 }  // namespace tf_windows_filesystem
 
-extern "C" {
-
-TF_CAPI_EXPORT void TF_InitPlugin(TF_FilesystemPluginInfo* info) {
+void TF_InitPlugin(TF_FilesystemPluginInfo* info) {
   TF_SetFilesystemVersionMetadata(info);
 
   info->num_schemes = 2;
@@ -63,5 +61,3 @@ TF_CAPI_EXPORT void TF_InitPlugin(TF_FilesystemPluginInfo* info) {
   info->schemes[0] = strdup("");
   info->schemes[1] = strdup("file");
 }
-
-}  // extern "C"

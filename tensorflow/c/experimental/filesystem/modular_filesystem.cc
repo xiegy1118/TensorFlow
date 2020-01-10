@@ -682,6 +682,7 @@ Status RegisterFilesystemPlugin(const std::string& dso_path) {
 
   // Step 3: Call `TF_InitPlugin`
   TF_FilesystemPluginInfo info;
+  memset(&info, 0, sizeof(info));
   (reinterpret_cast<void (*)(TF_FilesystemPluginInfo*)>(dso_symbol))(&info);
 
   // Step 4: Validate and register all filesystems
