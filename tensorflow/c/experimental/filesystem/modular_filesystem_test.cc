@@ -12,11 +12,12 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
+#include "tensorflow/c/experimental/filesystem/modular_filesystem.h"
+
 #include <memory>
 #include <random>
 #include <string>
 
-#include "tensorflow/c/experimental/filesystem/modular_filesystem.h"
 #include "tensorflow/core/lib/io/path.h"
 #include "tensorflow/core/platform/env.h"
 #include "tensorflow/core/platform/error.h"
@@ -1712,7 +1713,8 @@ INSTANTIATE_TEST_SUITE_P(ModularFileSystem, ModularFileSystemTest,
 static bool LoadDSO(const std::string& dso) {
   tensorflow::Status status = RegisterFilesystemPlugin(dso);
   if (!status.ok())
-    VLOG(0) << "Filesystems from '" << dso << "' could not be registered: " << status;
+    VLOG(0) << "Filesystems from '" << dso
+            << "' could not be registered: " << status;
   return status.ok();
 }
 

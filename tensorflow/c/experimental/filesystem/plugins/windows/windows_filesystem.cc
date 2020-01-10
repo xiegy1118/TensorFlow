@@ -53,11 +53,18 @@ namespace tf_windows_filesystem {
 
 }  // namespace tf_windows_filesystem
 
-void TF_InitPlugin(TF_FilesystemPluginInfo* info) {
-  TF_SetFilesystemVersionMetadata(info);
+int TF_InitPlugin(void* (*allocator)(size_t), TF_FilesystemPluginInfo** info) {
+  const int num_schemes = 2;
+  *info = static_cast<TF_FilesystemPluginInfo*>(
+      allocator(num_schemes * sizeof((*info)[0])));
 
-  info->num_schemes = 2;
-  info->schemes = static_cast<char**>(calloc(info->num_schemes, sizeof(info->schemes[0])));
-  info->schemes[0] = strdup("");
-  info->schemes[1] = strdup("file");
+  for (int i = 0; i < num_schemes; i++) {
+    TF_FilesystemPluginInfo* current_info = &((*info)[i]);
+    TF_SetFilesystemVersionMetadata(current_info);
+  }
+
+  (*info)[0].scheme = strdup("");
+  (*info)[1].scheme = strdup("file");
+
+  return num_schemes;
 }

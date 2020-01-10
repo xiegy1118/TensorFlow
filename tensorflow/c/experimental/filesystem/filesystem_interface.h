@@ -742,8 +742,7 @@ constexpr size_t TF_FILESYSTEM_OPS_SIZE = sizeof(TF_FilesystemOps);
 ///     it will be called by core TensorFlow when the filesystem plugin is
 ///     loaded;
 ///   * `TF_FilesystemPluginInfo` struct: used to transfer information between
-///     plugins and core TensorFlow about the operations provided and the
-///     associated metadata;
+///     plugins and core TensorFlow about the operations provided and metadata;
 ///   * `TF_SetFilesystemVersionMetadata` function: must be called by plugins in
 ///     their `TF_InitPlugin` to record the versioning information the plugins
 ///     are compiled against.
@@ -757,48 +756,42 @@ constexpr size_t TF_FILESYSTEM_OPS_SIZE = sizeof(TF_FilesystemOps);
 /// that are supported).
 
 /// This structure incorporates the operations defined in Section 2 and the
-/// metadata defined in Section 3. Every plugin fills this in
-/// TF_InitPlugin`. After `TF_InitPlugin` finishes, core TensorFlow uses the
-/// information present in this to initialize filesystems for the URI schemes
-/// that the plugin requests.
+/// metadata defined in section 3, allowing plugins to define different ops
+/// for different URI schemes.
 ///
-/// All pointers defined in this structure are allocated by the plugin and will
-/// be owned by core TensorFlow after the end of the `TF_InitPlugin` call.
+/// Every URI scheme is of the form "fs" for URIs of form "fs:///path/to/file".
+/// For local filesystems (i.e., when the URI is "/path/to/file"), the scheme
+/// must be "". The scheme must never be `nullptr`.
 ///
-/// We allow a plugin to implement support for multiple URI schemes but all
-/// operations will use the same API entry points. Plugins can multiplex
-/// internally, if desired.
+/// Every plugin fills this in `TF_InitPlugin`, using the alocator passed as
+/// argument to allocate memory. After `TF_InitPlugin` finishes, core
+/// TensorFlow uses the information present in this to initialize filesystems
+/// for the URI schemes that the plugin requests.
 ///
-/// Constraints:
-///   * There are exactly `num_schemes` in `schemes`.
-///   * Every URI scheme is of the form "fs" for URIs of form
-///     "fs:///path/to/file". For local filesystems (i.e., when the URI is
-///     "/path/to/file"), the scheme must be "". Must never be `nullptr`.
+/// All pointers defined in this structure point to memory allocated by the DSO
+/// using an allocator provided by core TensorFlow when calling `TF_InitPlugin`.
 ///
 /// IMPORTANT: To maintain binary compatibility, the layout of this structure
 /// must not change! In the unlikely case that a new type of file needs to be
-/// supported, add the metadata and the ops at the end of the structure
+/// supported, add the new ops and metadata at the end of the structure.
 typedef struct TF_FilesystemPluginInfo {
-  // Registered schemes
-  int num_schemes;
-  char **schemes;
-  // Function tables (see Section 2) and versioning metadata (see Section 3)
+  char* scheme;
   int filesystem_ops_abi;
   int filesystem_ops_api;
   size_t filesystem_ops_size;
-  TF_FilesystemOps *filesystem_ops;
+  TF_FilesystemOps* filesystem_ops;
   int random_access_file_ops_abi;
   int random_access_file_ops_api;
   size_t random_access_file_ops_size;
-  TF_RandomAccessFileOps *random_access_file_ops;
+  TF_RandomAccessFileOps* random_access_file_ops;
   int writable_file_ops_abi;
   int writable_file_ops_api;
   size_t writable_file_ops_size;
-  TF_WritableFileOps *writable_file_ops;
+  TF_WritableFileOps* writable_file_ops;
   int read_only_memory_region_ops_abi;
   int read_only_memory_region_ops_api;
   size_t read_only_memory_region_ops_size;
-  TF_ReadOnlyMemoryRegionOps *read_only_memory_region_ops;
+  TF_ReadOnlyMemoryRegionOps* read_only_memory_region_ops;
 } TF_FilesystemPluginInfo;
 
 /// Convenience function for setting the versioning metadata.
@@ -807,7 +800,8 @@ typedef struct TF_FilesystemPluginInfo {
 ///
 /// We want this to be defined in the plugin's memory space and we guarantee
 /// that core TensorFlow will never call this.
-static inline void TF_SetFilesystemVersionMetadata(TF_FilesystemPluginInfo *info) {
+static inline void TF_SetFilesystemVersionMetadata(
+    TF_FilesystemPluginInfo* info) {
   info->filesystem_ops_abi = TF_FILESYSTEM_OPS_ABI;
   info->filesystem_ops_api = TF_FILESYSTEM_OPS_API;
   info->filesystem_ops_size = TF_FILESYSTEM_OPS_SIZE;
@@ -822,18 +816,28 @@ static inline void TF_SetFilesystemVersionMetadata(TF_FilesystemPluginInfo *info
   info->read_only_memory_region_ops_size = TF_READ_ONLY_MEMORY_REGION_OPS_SIZE;
 }
 
-// Initializes a TensorFlow plugin.
-//
-// Must be implemented by the plugin DSO. It is called by TensorFlow runtime.
-//
-// Filesystem plugins can be loaded on demand by users via
-// `Env::LoadLibrary` or during TensorFlow's startup if they are on certain
-// paths (although this has a security risk if two plugins register for the
-// same filesystem and the malicious one loads before the legimitate one -
-// but we consider this to be something that users should care about and
-// manage themselves). In both of these cases, core TensorFlow looks for
-// the `TF_InitPlugin` symbol and calls this function.
-TF_CAPI_EXPORT extern void TF_InitPlugin(TF_FilesystemPluginInfo* plugin_info);
+/// Initializes a TensorFlow plugin.
+///
+/// Must be implemented by the plugin DSO. It is called by TensorFlow runtime.
+///
+/// Filesystem plugins can be loaded on demand by users via
+/// `Env::LoadLibrary` or during TensorFlow's startup if they are on certain
+/// paths (although this has a security risk if two plugins register for the
+/// same filesystem and the malicious one loads before the legimitate one -
+/// but we consider this to be something that users should care about and
+/// manage themselves). In both of these cases, core TensorFlow looks for
+/// the `TF_InitPlugin` symbol and calls this function.
+///
+/// All memory allocated by this function must be allocated via the `allocator`
+/// argument.
+///
+/// For every filesystem URI scheme that this plugin supports, the plugin must
+/// add one `TF_FilesystemPluginInfo` entry in `plugin_info`.
+///
+/// Returns number of entries in `plugin_info` (i.e., number of URI schemes
+/// supported).
+TF_CAPI_EXPORT extern int TF_InitPlugin(void* (*allocator)(size_t size),
+                                        TF_FilesystemPluginInfo** plugin_info);
 
 #ifdef __cplusplus
 }  // end extern "C"

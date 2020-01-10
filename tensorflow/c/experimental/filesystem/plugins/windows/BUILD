@@ -10,6 +10,11 @@ tf_cc_shared_object(
     name = "windows_filesystem.dll",
     framework_so = [],
     linkstatic = False,
+    tags = [
+        "manual",
+        "nobuilder",
+        "notap",
+    ],
     visibility = ["//visibility:public"],
     deps = [":windows_filesystem_impl"],
 )
@@ -19,6 +24,11 @@ cc_library(
     name = "windows_filesystem_impl",
     srcs = ["windows_filesystem.cc"],
     copts = get_win_copts(),
+    tags = [
+        "manual",
+        "nobuilder",
+        "notap",
+    ],
     deps = [
         "//tensorflow/c:tf_status",
         "//tensorflow/c/experimental/filesystem:filesystem_interface",
